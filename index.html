@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Автостопом по фазе сна — Архив</title>
+<style>
+  :root {
+    --bg-1: #1a0b2e;
+    --bg-2: #2d1b4e;
+    --bg-3: #16213e;
+    --surface: rgba(255,255,255,0.05);
+    --surface-hover: rgba(255,255,255,0.09);
+    --border: rgba(255,255,255,0.1);
+    --text: #d8d4e8;
+    --text-dim: #8a7fa8;
+    --text-hi: #fff;
+    --accent-1: #7bf1c4;
+    --accent-2: #ff6bcb;
+    --accent-3: #6bc5ff;
+    --accent-4: #ffb86b;
+    --accent-5: #b06bff;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2), var(--bg-3));
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    line-height: 1.7;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+  }
+
+  /* ЛЕЙАУТ: две боковые колонки + центр */
+  .page-layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 160px 1fr 160px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  /* БОКОВЫЕ КОЛОНКИ С ФОТО */
+  .side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    position: sticky;
+    top: 1rem;
+  }
+
+  .photo-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .photo-card:hover {
+    transform: translateY(-4px) rotate(-1deg);
+    box-shadow: 0 8px 20px rgba(123,241,196,0.2);
+  }
+  .photo-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: grayscale(30%) contrast(1.1);
+    transition: filter 0.3s;
+  }
+  .photo-card:hover img {
+    filter: grayscale(0%) contrast(1.2);
+  }
+  .photo-caption {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 0.03em;
+  }
+
+  /* ЦЕНТРАЛЬНЫЙ КОНТЕНТ */
+  .main-content {
+    min-width: 0;
+  }
+
+  header {
+    text-align: center;
+    padding: 2rem 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-4));
+  }
+  .header-bikes {
+    display: flex;
+    justify-content: center;
+    gap: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  .bike-icon {
+    width: 46px; height: 30px;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    animation: float 3s ease-in-out infinite;
+  }
+  .bike-icon:nth-child(1) { stroke: var(--accent-1); animation-delay: 0s; }
+  .bike-icon:nth-child(2) { stroke: var(--accent-2); animation-delay: .4s; }
+  .bike-icon:nth-child(3) { stroke: var(--accent-3); animation-delay: .8s; }
+  .bike-icon:nth-child(4) { stroke: var(--accent-4); animation-delay: 1.2s; }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  header h1 {
+    font-size: 1.7rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-3), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.4rem;
+  }
+  header .subtitle {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  header .meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    font-size: 0.72rem;
+  }
+  header .meta span {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    padding: 0.25rem 0.7rem;
+    border-radius: 20px;
+  }
+
+  /* ВКЛАДКИ */
+  .tab-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.2rem;
+    justify-content: center;
+  }
+  .tab-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.55rem 0.9rem;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.3s;
+  }
+  .tab-btn:hover { color: var(--text-hi); background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+  .tab-btn.active {
+    color: #1a0b2e;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+    border-color: transparent;
+    box-shadow: 0 4px 16px rgba(123,241,196,0.3);
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: slideUp 0.35s ease; }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  section { margin-bottom: 1.5rem; }
+  h2 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-hi);
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  h2::before {
+    content: '';
+    width: 4px; height: 18px;
+    background: linear-gradient(180deg, var(--accent-1), var(--accent-3));
+    border-radius: 2px;
+  }
+  h3 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent-1);
+    letter-spacing: 0.04em;
+    margin: 1.2rem 0 0.6rem;
+    text-transform: uppercase;
+  }
+  p {
+    margin-bottom: 0.8rem;
+    background: var(--surface);
+    padding: 0.9rem 1.1rem;
+    border-radius: 12px;
+    border-left: 3px solid var(--accent-3);
+    transition: all 0.3s;
+    font-size: 0.92rem;
+  }
+  p:hover { background: var(--surface-hover); border-left-color: var(--accent-1); }
+  .highlight { color: var(--accent-1); font-weight: 700; }
+  blockquote {
+    background: linear-gradient(135deg, rgba(255,107,203,0.1), rgba(176,107,255,0.1));
+    border-left: 4px solid var(--accent-2);
+    padding: 1.1rem 1.3rem;
+    margin: 1.2rem 0;
+    color: var(--text-hi);
+    font-style: italic;
+    border-radius: 12px;
+    position: relative;
+    font-size: 0.95rem;
+  }
+
+  ul { list-style: none; padding: 0; }
+  .release-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.65rem 1rem;
+    margin-bottom: 0.4rem;
+    background: var(--surface);
+    border-radius: 10px;
+    border-left: 3px solid var(--accent-3);
+    font-size: 0.88rem;
+    color: var(--text-hi);
+    transition: all 0.25s;
+  }
+  .release-list li:hover {
+    background: var(--surface-hover);
+    border-left-color: var(--accent-1);
+    transform: translateX(5px);
+  }
+  .release-list .year {
+    color: var(--accent-4);
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(255,184,107,0.15);
+    padding: 0.1rem 0.55rem;
+    border-radius: 10px;
+  }
+
+  .track-list { display: flex; flex-direction: column; gap: 0.4rem; }
+  .track-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border-radius: 10px;
+    border-left: 3px solid var(--accent-2);
+    font-size: 0.88rem;
+    transition: all 0.25s;
+  }
+  .track-list li:hover {
+    background: var(--surface-hover);
+    border-left-color: var(--accent-1);
+    transform: translateX(5px);
+  }
+  .track-name { color: var(--text-hi); font-weight: 500; }
+  .track-btn {
+    background: linear-gradient(135deg, rgba(123,241,196,0.15), rgba(107,197,255,0.15));
+    border: 1px solid var(--accent-1);
+    color: var(--accent-1);
+    font-family: inherit;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.25s;
+    white-space: nowrap;
+  }
+  .track-btn:hover {
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+    color: #1a0b2e;
+    box-shadow: 0 4px 15px rgba(123,241,196,0.4);
+    transform: scale(1.05);
+  }
+  .track-btn.copied {
+    background: linear-gradient(135deg, var(--accent-2), var(--accent-5));
+    color: #fff;
+    border-color: transparent;
+  }
+
+  .video-grid { display: flex; flex-direction: column; gap: 1.2rem; }
+  .video-item {
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+    position: relative;
+  }
+  .video-item::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-2), var(--accent-4));
+    z-index: 2;
+  }
+  .video-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(255,107,203,0.2);
+    border-color: var(--accent-2);
+  }
+  .video-item iframe { display: block; width: 100%; height: 300px; border: none; }
+  .video-caption {
+    padding: 0.7rem 1rem;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 2rem; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+    color: #1a0b2e;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.7rem 1.4rem;
+    border-radius: 25px;
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.68,-0.55,0.27,1.55);
+    pointer-events: none;
+    z-index: 100;
+    box-shadow: 0 8px 25px rgba(123,241,196,0.4);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .note {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-top: 1.5rem;
+    padding: 0.9rem 1.1rem;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    border: 1px dashed var(--border);
+  }
+
+  footer {
+    text-align: center;
+    padding: 1.5rem 0;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+  .footer-bikes { display: flex; justify-content: center; gap: 0.8rem; margin-bottom: 0.8rem; }
+  .footer-bikes .bike-icon { width: 34px; height: 22px; }
+
+  @media (max-width: 900px) {
+    .page-layout { grid-template-columns: 1fr; }
+    .side-column { display: none; }
+  }
+  @media (max-width: 480px) {
+    header h1 { font-size: 1.3rem; }
+    .tab-btn { font-size: 0.62rem; padding: 0.45rem 0.7rem; }
+    .track-list li { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+    .video-item iframe { height: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-layout">
+
+<!-- ЛЕВАЯ КОЛОНКА: старые фото Кишлака -->
+<aside class="side-column">
+
+  <div class="photo-card">
+    <img src="photos/1.jpg" alt="Старое фото Кишлака">
+    <div class="photo-caption">АПФС эпоха</div>
+  </div>
+
+  <div class="photo-card">
+    <img src="photos/2.jpg" alt="Старое фото Кишлака">
+    <div class="photo-caption">Североморск</div>
+  </div>
+
+  <div class="photo-card">
+    <img src="photos/3.jpg" alt="Старое фото Кишлака">
+    <div class="photo-caption">Архив</div>
+  </div>
+
+</aside>
+
+  <!-- ЦЕНТР: весь контент -->
+  <div class="main-content">
+
+    <header>
+      <div class="header-bikes">
+        <svg class="bike-icon" viewBox="0 0 64 40"><circle cx="14" cy="30" r="8"/><circle cx="50" cy="30" r="8"/><path d="M14 30 L26 18 L36 18 L42 12 L50 30"/><path d="M26 18 L22 12 L30 12"/><path d="M36 18 L40 10 L46 10"/></svg>
+        <svg class="bike-icon" viewBox="0 0 64 40"><circle cx="16" cy="28" r="9"/><circle cx="48" cy="32" r="7"/><path d="M16 28 L30 16 L38 16 L44 10 L48 32"/><path d="M30 16 L26 8 L34 8"/><path d="M38 16 L42 6 L48 6"/></svg>
+        <svg class="bike-icon" viewBox="0 0 64 40"><circle cx="12" cy="30" r="7"/><circle cx="52" cy="30" r="7"/><path d="M12 30 L24 20 L38 20 L44 14 L52 30"/><path d="M24 20 L20 14 L28 14"/><path d="M38 20 L42 12 L48 12"/></svg>
+        <svg class="bike-icon" viewBox="0 0 64 40"><circle cx="15" cy="31" r="8.5"/><circle cx="49" cy="31" r="8.5"/><path d="M15 31 L28 17 L37 17 L43 11 L49 31"/><path d="M28 17 L23 9 L31 9"/><path d="M37 17 L41 7 L47 7"/></svg>
+      </div>
+      <h1>Автостопом по фазе сна</h1>
+      <div class="subtitle">2014 — 2020</div>
+      <div class="meta">
+        <span>🎤 Максим Фисенко</span>
+        <span>📍 Североморск</span>
+      </div>
+    </header>
+
+    <nav class="tab-nav" id="tabNav">
+      <button class="tab-btn active" data-tab="history">📖 История</button>
+      <button class="tab-btn" data-tab="releases">💿 Релизы</button>
+      <button class="tab-btn" data-tab="tracks">🎵 Треки</button>
+      <button class="tab-btn" data-tab="videos">📺 Видео</button>
+      <button class="tab-btn" data-tab="after">🚀 После</button>
+    </nav>
+
+    <!-- ИСТОРИЯ -->
+    <div class="tab-panel active" id="panel-history">
+      <section>
+        <h2>Что это было</h2>
+        <p><span class="highlight">Автостопом по фазе сна</span> (АПФС) — первый серьёзный проект Максима Фисенко, более известного как <span class="highlight">Кишлак</span>. Существовал примерно с 2014 по 2020 год и был закрыт самим автором[citation:5][citation:14].</p>
+        <p>Название — отсылка к «Автостопом по галактике». Проект описывают как иронию над собственным маргинальным образом жизни, в текстах — депрессивная атмосфера и внутренний мир человека, потерявшегося по жизни[citation:14].</p>
+      </section>
+      <section>
+        <h2>Хронология</h2>
+        <p>Максим родился 14 декабря 1998 года в Североморске Мурманской области. Писать музыку начал с 14 лет, записывал на диктофон и выкладывал во «ВКонтакте»[citation:5][citation:21].</p>
+        <p>Проект создан в 2014-м, заброшен, восстановлен в 2016-м. Первый известный трек — «Опианариум» (2018). Из-за того, что часть слушателей восприняла посыл неправильно, в 2020 году Фисенко удалил АПФС со всех площадок[citation:14].</p>
+        <blockquote>«Я хотел донести до людей, что не надо жить, как я»</blockquote>
+      </section>
+    </div>
+
+    <!-- РЕЛИЗЫ -->
+    <div class="tab-panel" id="panel-releases">
+      <section>
+        <h2>Релизы проекта</h2>
+        <h3>Полноформатные альбомы</h3>
+        <ul class="release-list">
+          <li><span>Движение</span><span class="year">2020</span></li>
+          <li><span>Собачий вальс</span><span class="year">2020</span></li>
+          <li><span>Не забирай меня домой</span><span class="year">2020</span></li>
+          <li><span>11:11</span><span class="year">2020</span></li>
+        </ul>
+        <h3>Сборники и EP</h3>
+        <ul class="release-list">
+          <li><span>Кругосветка в рамках черепной коробки (EP)</span><span class="year">2019</span></li>
+          <li><span>Лайтово (EP)</span><span class="year">—</span></li>
+          <li><span>Опианариум (сборник, 31 трек)</span><span class="year">2021</span></li>
+          <li><span>105 оттенков</span><span class="year">2020</span></li>
+        </ul>
+      </section>
+    </div>
+
+    <!-- ТРЕКИ -->
+    <div class="tab-panel" id="panel-tracks">
+  <section>
+    <h2>Известные треки</h2>
+        <p style="border-left-color: var(--accent-2);">Нажми кнопку, чтобы скопировать название.</p>
+        <ul class="track-list">
+          <li><span class="track-name">Опианариум</span><button class="track-btn" data-track="Опианариум">Копировать</button></li>
+          <li><span class="track-name">Сонный паралич</span><button class="track-btn" data-track="Сонный паралич">Копировать</button></li>
+          <li><span class="track-name">Я умру в Североморске</span><button class="track-btn" data-track="Я умру в Североморске">Копировать</button></li>
+          <li><span class="track-name">Панацея</span><button class="track-btn" data-track="Панацея">Копировать</button></li>
+          <li><span class="track-name">Дискотека 90-х</span><button class="track-btn" data-track="Дискотека 90-х">Копировать</button></li>
+          <li><span class="track-name">Канет вниз</span><button class="track-btn" data-track="Канет вниз">Копировать</button></li>
+          <li><span class="track-name">21</span><button class="track-btn" data-track="21">Копировать</button></li>
+          <li><span class="track-name">Движение</span><button class="track-btn" data-track="Движение">Копировать</button></li>
+          <li><span class="track-name">Собачий вальс</span><button class="track-btn" data-track="Собачий вальс">Копировать</button></li>
+          <li><span class="track-name">Лайтово</span><button class="track-btn" data-track="Лайтово">Копировать</button></li>
+          <li><span class="track-name">STOP LIFE</span><button class="track-btn" data-track="STOP LIFE">Копировать</button></li>
+          <li><span class="track-name">Котик, зайчик</span><button class="track-btn" data-track="Котик, зайчик">Копировать</button></li>
+          <li><span class="track-name">Я летаю по вселенной</span><button class="track-btn" data-track="Я летаю по вселенной">Копировать</button></li>
+        </ul>
+      </section>
+    </div>
+
+    <!-- ВИДЕО -->
+<div class="tab-panel" id="panel-videos">
+  <section>
+    <h2>Видео из ВКонтакте</h2>
+    <p style="border-left-color: var(--accent-4);">
+      Записи выступлений и треки проекта с VK Video.
+    </p>
+
+    <div class="video-grid">
+      <div class="video-item">
+        <iframe 
+          src="https://vkvideo.ru/video-226978427_456239050" 
+          width="100%" 
+          height="315" 
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" 
+          frameborder="0" 
+          allowfullscreen>
+        </iframe>
+        <div class="video-caption">
+          🎬 Название первого видео
+        </div>
+      </div>
+
+      <div class="video-item">
+        <iframe 
+          src="https://vkvideo.ru/video-234512488_456241061" 
+          width="100%" 
+          height="315" 
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" 
+          frameborder="0" 
+          allowfullscreen>
+        </iframe>
+        <div class="video-caption">
+          🎬 Название второго видео
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+    <!-- ПОСЛЕ -->
+    <div class="tab-panel" id="panel-after">
+      <section>
+        <h2>После АПФС</h2>
+        <p>После закрытия проекта Максим продолжил под псевдонимом <span class="highlight">Кишлак</span>. Другие проекты: «Bisexual From The Village», «Солнечный Муслим», «Русалочье урочище», «писък»[citation:5][citation:21].</p>
+        <p>Аудитория АПФС на стримингах — около 146 000 слушателей в месяц даже спустя годы после закрытия.</p>
+      </section>
+    </div>
+
+    <div class="note">
+      Информация собрана из открытых источников. Аудиофайлы не размещены — только историческая справка и встроенные YouTube-плееры.
+    </div>
+
+    <footer>
+      <div class="footer-bikes">
+        <svg class="bike-icon" viewBox="0 0 64 40"><circle cx="14" cy="30" r="8"/><circle cx="50" cy="30" r="8"/><path d="M14 30 L26 18 L36 18 L42 12 L50 30"/><path d="M26 18 L22 12 L30 12"/></svg>
+        <svg class="bike-icon" viewBox="0 0 64 40"><circle cx="16" cy="28" r="9"/><circle cx="48" cy="32" r="7"/><path d="M16 28 L30 16 L38 16 L44 10 L48 32"/><path d="M30 16 L26 8 L34 8"/></svg>
+      </div>
+      Автостопом по фазе сна — 2014–2020
+    </footer>
+
+  </div><!-- /main-content -->
+
+  <!-- ПРАВАЯ КОЛОНКА: старые фото Кишлака -->
+<aside class="side-column">
+
+  <div class="photo-card">
+    <img src="photos/4.jpg" alt="Старое фото Кишлака">
+    <div class="photo-caption">Тату и краска</div>
+  </div>
+
+  <div class="photo-card">
+    <img src="photos/5.jpg" alt="Старое фото Кишлака">
+    <div class="photo-caption">BFTV</div>
+  </div>
+
+  <div class="photo-card">
+    <img src="photos/6.jpg" alt="Старое фото Кишлака">
+    <div class="photo-caption">Архив АПФС</div>
+  </div>
+
+</aside>
+
+</div>
+
+<div class="toast" id="toast">Скопировано</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // === ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ===
+  var tabButtons = document.querySelectorAll('.tab-btn');
+  var tabPanels = document.querySelectorAll('.tab-panel');
+
+  function switchTab(tabName) {
+    for (var i = 0; i < tabButtons.length; i++) {
+      tabButtons[i].classList.remove('active');
+    }
+    for (var j = 0; j < tabPanels.length; j++) {
+      tabPanels[j].classList.remove('active');
+    }
+    var activeBtn = document.querySelector('.tab-btn[data-tab="' + tabName + '"]');
+    if (activeBtn) activeBtn.classList.add('active');
+    var activePanel = document.getElementById('panel-' + tabName);
+    if (activePanel) activePanel.classList.add('active');
+  }
+
+  for (var k = 0; k < tabButtons.length; k++) {
+    tabButtons[k].addEventListener('click', function() {
+      switchTab(this.getAttribute('data-tab'));
+    });
+  }
+
+  // === КОПИРОВАНИЕ ТРЕКОВ ===
+  var toast = document.getElementById('toast');
+  var toastTimer = null;
+
+  function showToast(msg) {
+    toast.textContent = msg || 'Скопировано';
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() {
+      toast.classList.remove('show');
+    }, 1800);
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        showToast('Скопировано: ' + text);
+      }).catch(function() {
+        fallbackCopy(text);
+      });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); showToast('Скопировано: ' + text); }
+    catch(e) { showToast('Не удалось скопировать'); }
+    document.body.removeChild(ta);
+  }
+
+  var trackButtons = document.querySelectorAll('.track-btn');
+  for (var m = 0; m < trackButtons.length; m++) {
+    trackButtons[m].addEventListener('click', function() {
+      var trackName = this.getAttribute('data-track');
+      copyText(trackName);
+      var btn = this;
+      btn.textContent = '✓';
+      btn.classList.add('copied');
+      setTimeout(function() {
+        btn.textContent = 'Копировать';
+        btn.classList.remove('copied');
+      }, 1500);
+    });
+  }
+
+  // === КЛАВИАТУРА: стрелки для вкладок ===
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    var activeBtn = document.querySelector('.tab-btn.active');
+    if (!activeBtn) return;
+    var buttons = Array.prototype.slice.call(tabButtons);
+    var idx = buttons.indexOf(activeBtn);
+    var next;
+    if (e.key === 'ArrowRight') next = (idx + 1) % buttons.length;
+    else next = (idx - 1 + buttons.length) % buttons.length;
+    switchTab(buttons[next].getAttribute('data-tab'));
+    buttons[next].focus();
+    e.preventDefault();
+  });
+
+})();
+</script>
+
+</body>
+</html>
